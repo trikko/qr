@@ -47,10 +47,17 @@ You can also access the raw QR Code data:
 ```d
 import qr;
 QrCode qrcode = "Hello, world!";
-qrcode.size.writeln; // Print the size of the QR Code
-qrcode[0,0].writeln; // Print the module (pixel) at position (0, 0) (true = black, false = white)
+qrcode.size.writeln; // Print the size (number of modules per side) of the QR Code
+qrcode[0,0].writeln; // Print the module at position (0, 0) (true = black, false = white)
 ```
 
+You can print QR Code as ASCII art:
+
+```d
+import qr;
+QrCode("Hello, world!").writeln; // Print QR Code as ASCII art
+QrCode("Hello, world!").toString(dense: true).writeln; // Print QR Code as ASCII art, dense!
+```
 
 
 ## License
