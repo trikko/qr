@@ -1,9 +1,7 @@
 # QR Code Generator
 
 A QR Code generator library for D. It is self-contained and does not require any external dependencies.
-You can use it to generate QR Codes and save them as PNG, SVG, PPM files.
-
-
+You can use it to generate QR Codes and save them as PNG, SVG, PPM files (or print them as ASCII art).
 
 ## Usage
 
