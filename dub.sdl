@@ -1,0 +1,7 @@
+name "qr"
+sourceFiles "source/qr.d" "source/backend.c"
+description "A simple library to generate Qr Codes"
+authors "Andrea Fontana"
+copyright "Copyright © 2024, Andrea Fontana"
+license "MIT"
+targetType "sourceLibrary"
