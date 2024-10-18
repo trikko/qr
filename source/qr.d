@@ -54,7 +54,8 @@ enum OutputFormat {
    AUTO, /// The QR Code encoder will automatically select an appropriate output format
    PPM,  /// The QR Code will be output in PPM format
    SVG,  /// The QR Code will be output in SVG format
-   PNG  /// The QR Code will be output in PNG format
+   SVGZ, /// The QR Code will be output in SVGZ format (gzip-compressed SVG)
+   PNG,  /// The QR Code will be output in PNG format
 }
 
 /++ The QrCode struct contains the QR Code data and provides methods to manipulate and display it.
@@ -184,7 +185,7 @@ struct QrCode
    deprecated("Use saveAs instead")
    alias save = saveAs;
 
-   /++ Saves the QR Code to a file. Supports SVG, PPM, PNG formats.
+   /++ Saves the QR Code to a file. Supports SVG, SVGZ, PPM, PNG formats.
    ++/
    void saveAs(string filename, size_t moduleSize = 10, size_t padding = 2, string foreground = "#000000", string background = "#FFFFFF", OutputFormat format = OutputFormat.AUTO ) const {
 
@@ -211,6 +212,7 @@ struct QrCode
          import std.algorithm : endsWith;
 
          if (filename.toLower.endsWith(".svg"))         format = OutputFormat.SVG;
+         else if (filename.toLower.endsWith(".svgz"))   format = OutputFormat.SVGZ;
          else if (filename.toLower.endsWith(".ppm"))    format = OutputFormat.PPM;
          else if (filename.toLower.endsWith(".png"))    format = OutputFormat.PNG;
          else throw new Exception("Unsupported file extension");
@@ -224,27 +226,62 @@ struct QrCode
 
       size_t qrSize = size();
 
-      // SVG
-      if (format == OutputFormat.SVG) {
-         import std.format : format;
+      // SVG or SVGZ
+      if (format == OutputFormat.SVG || format == OutputFormat.SVGZ) {
 
-         auto totalSize = (qrSize + 2 * padding) * moduleSize;
+         string svg;
 
-         string svg = format(`<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 %d %d" stroke="none"><rect width="100%%" height="100%%" fill="#%02X%02X%02X"/><path d="`, totalSize, totalSize, br, bg, bb);
+         {
+            import std.format : format;
 
-         foreach (y; 0 .. qrSize)
-            foreach (x; 0 .. qrSize) {
-               if (getModule(x, y)) {
-                  auto rx = (x + padding) * moduleSize;
-                  auto ry = (y + padding) * moduleSize;
-                  svg ~= format("M%d,%dh%dv%dh-%dz ", rx, ry, moduleSize, moduleSize, moduleSize);
+            auto totalSize = (qrSize + 2 * padding) * moduleSize;
+            svg = format(`<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 %d %d" stroke="none"><rect width="100%%" height="100%%" fill="#%02X%02X%02X"/><path d="`, totalSize, totalSize, br, bg, bb);
+
+            foreach (y; 0 .. qrSize)
+               foreach (x; 0 .. qrSize) {
+                  if (getModule(x, y)) {
+                     auto rx = (x + padding) * moduleSize;
+                     auto ry = (y + padding) * moduleSize;
+                     svg ~= format("M%d,%dh%dv%dh-%dz ", rx, ry, moduleSize, moduleSize, moduleSize);
+                  }
                }
-            }
 
-         svg ~= format(`" fill="#%02X%02X%02X"/></svg>`, fr, fg, fb);
+            svg ~= format(`" fill="#%02X%02X%02X"/></svg>`, fr, fg, fb);
+         }
 
          import std.file : write;
-         write(filename, svg);
+
+         // SVG
+         if (format == OutputFormat.SVG) write(filename, svg);
+
+         // SVGZ
+         else {
+            import std.zlib : compress;
+            import std.digest.crc : crc32Of;
+            import std.bitmanip : nativeToLittleEndian;
+
+            // Gzip header (magic number, compression method = deflate, flags, timestamp, extra flags, OS type = Unix)
+            ubyte[] gzipData = [0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03];
+
+            // Compress SVG data
+            auto compressedSvg = cast(ubyte[])compress(cast(void[])svg, 9);
+
+            // Remove zlib header (first two bytes) and zlib checksum (last four bytes)
+            compressedSvg = compressedSvg[2 .. $-4];
+
+            // Append compressed data to gzip header
+            gzipData ~= compressedSvg;
+
+            // Calculate and append CRC32 of uncompressed data
+            gzipData ~= crc32Of(cast(ubyte[])svg);
+
+            // Append uncompressed size
+            uint size = cast(uint)svg.length;
+            gzipData ~= nativeToLittleEndian(size);
+
+            // Write gzipped data to file
+            write(filename, gzipData);
+         }
       }
 
       // PPM
