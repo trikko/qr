@@ -276,7 +276,7 @@ struct QrCode
          write(filename, ppm);
       }
 
-      // IndexedPNG
+      // Indexed PNG
       else if (format == OutputFormat.PNG)
       {
          void writeChunk(ref ubyte[] pngData, string type, const(ubyte)[] data) const {
