@@ -191,15 +191,19 @@ struct QrCode
       void parseColor(string color, ref ubyte r, ref ubyte g, ref ubyte b) {
          import std.conv : parse;
 
-         if (color.length != 7 || color[0] != '#') throw new Exception("Invalid color format");
+         if (color.length != 7 || color[0] != '#') throw new Exception("Invalid color format: " ~ color);
 
          auto sr = color[1..3];
          auto sg = color[3..5];
          auto sb = color[5..7];
 
-         r = parse!ubyte(sr, 16);
-         g = parse!ubyte(sg, 16);
-         b = parse!ubyte(sb, 16);
+         try {
+            r = parse!ubyte(sr, 16);
+            g = parse!ubyte(sg, 16);
+            b = parse!ubyte(sb, 16);
+         }
+         catch (Exception e) throw new Exception("Invalid color format: " ~ color);
+
       }
 
       if (format == OutputFormat.AUTO) {
