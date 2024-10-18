@@ -1,7 +1,7 @@
 # QR Code for D
 
 A QR Code generator library for D. It is self-contained and does not require any external dependencies.
-You can use it to generate QR Codes and save them as PNG, SVG, PPM files (or print them as ASCII art).
+You can use it to generate QR Codes and save them as PNG, SVG, SVGZ, PPM files (or print them as ASCII art).
 
 Based on [Project Nayuki's code](https://github.com/nayuki/QR-Code-generator)
 ## Usage
