@@ -57,9 +57,12 @@ enum OutputFormat {
    PNG  /// The QR Code will be output in PNG format
 }
 
+
+alias QrCode = QRCode;
+
 /++ The QR Code struct contains the QR Code data and provides methods to manipulate and display it.
 ++/
-struct QrCode
+struct QRCode
 {
    private ubyte[qrcodegen_BUFFER_LEN_MAX()] qr0;
 
