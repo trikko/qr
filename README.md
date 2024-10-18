@@ -10,11 +10,11 @@ Basic example:
 
 ```d
 import qr;
-QrCode("Hello, world!").save("test.png");
+QrCode("Hello, world!").saveAs("test.png");
 
 /* same as above
 QrCode qrcode = "Hello, world!";
-qrcode.save("test.png");
+qrcode.saveAs("test.png");
 */
 ```
 
@@ -40,7 +40,7 @@ You can save the QR Code to a file (PNG, SVG, PPM) with some options:
 
 ```d
 import qr;
-QrCode("Hello, world!").save("test.png", moduleSize: 10, foreground: "#ff0000"); // Save a red QR Code as PNG
+QrCode("Hello, world!").saveAs("test.png", moduleSize: 10, foreground: "#ff0000"); // Save a red QR Code as PNG
 ```
 
 You can also access the raw QR Code data:
