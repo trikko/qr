@@ -308,6 +308,8 @@ struct QrCode
 
          // IHDR chunk
          ubyte[] ihdr;
+         ihdr.reserve(13);
+
          ihdr ~= nativeToBigEndian(cast(uint)imgSize);  // Width
          ihdr ~= nativeToBigEndian(cast(uint)imgSize);  // Height
          ihdr ~= [1, 3, 0, 0, 0];  // Bit depth (1), Color type (3 - indexed), Compression, Filter, Interlace
@@ -315,12 +317,16 @@ struct QrCode
 
          // PLTE chunk (color palette)
          ubyte[] plte;
+         plte.reserve(6);
+
          plte ~= [cast(ubyte)br, cast(ubyte)bg, cast(ubyte)bb];  // Background color
          plte ~= [cast(ubyte)fr, cast(ubyte)fg, cast(ubyte)fb];  // Foreground color
          writeChunk(pngData, "PLTE", plte);
 
          // Image data
          ubyte[] idat;
+         idat.reserve(((imgSize + 7) / 8 + 1) * imgSize);
+
          foreach (y; 0 .. imgSize) {
             idat ~= 0;  // Filter type for each scanline
             ubyte currentByte = 0;
