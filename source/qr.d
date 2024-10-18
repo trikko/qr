@@ -54,8 +54,7 @@ enum OutputFormat {
    AUTO, /// The QR Code encoder will automatically select an appropriate output format
    PPM,  /// The QR Code will be output in PPM format
    SVG,  /// The QR Code will be output in SVG format
-   PNG,  /// The QR Code will be output in PNG format
-   BMP   /// The QR Code will be output in BMP format
+   PNG  /// The QR Code will be output in PNG format
 }
 
 /++ The QR Code struct contains the QR Code data and provides methods to manipulate and display it.
@@ -186,7 +185,7 @@ struct QrCode
    deprecated("Use saveAs instead")
    alias save = saveAs;
 
-   /++ Saves the QR Code to a file. Supports SVG, PPM, PNG, and BMP formats.
+   /++ Saves the QR Code to a file. Supports SVG, PPM, PNG formats.
    ++/
    void saveAs(string filename, size_t moduleSize = 10, size_t padding = 2, string foreground = "#000000", string background = "#FFFFFF", OutputFormat format = OutputFormat.AUTO ) const {
 
@@ -211,7 +210,6 @@ struct QrCode
          if (filename.toLower.endsWith(".svg"))         format = OutputFormat.SVG;
          else if (filename.toLower.endsWith(".ppm"))    format = OutputFormat.PPM;
          else if (filename.toLower.endsWith(".png"))    format = OutputFormat.PNG;
-         else if (filename.toLower.endsWith(".bmp"))    format = OutputFormat.BMP;
          else throw new Exception("Unsupported file extension");
       }
 
@@ -278,7 +276,7 @@ struct QrCode
          write(filename, ppm);
       }
 
-      // PNG
+      // IndexedPNG
       else if (format == OutputFormat.PNG)
       {
          void writeChunk(ref ubyte[] pngData, string type, const(ubyte)[] data) const {
@@ -312,28 +310,41 @@ struct QrCode
          ubyte[] ihdr;
          ihdr ~= nativeToBigEndian(cast(uint)imgSize);  // Width
          ihdr ~= nativeToBigEndian(cast(uint)imgSize);  // Height
-         ihdr ~= [8, 2, 0, 0, 0];  // Bit depth, Color type, Compression, Filter, Interlace
+         ihdr ~= [1, 3, 0, 0, 0];  // Bit depth (1), Color type (3 - indexed), Compression, Filter, Interlace
          writeChunk(pngData, "IHDR", ihdr);
+
+         // PLTE chunk (color palette)
+         ubyte[] plte;
+         plte ~= [cast(ubyte)br, cast(ubyte)bg, cast(ubyte)bb];  // Background color
+         plte ~= [cast(ubyte)fr, cast(ubyte)fg, cast(ubyte)fb];  // Foreground color
+         writeChunk(pngData, "PLTE", plte);
 
          // Image data
          ubyte[] idat;
          foreach (y; 0 .. imgSize) {
             idat ~= 0;  // Filter type for each scanline
+            ubyte currentByte = 0;
+            ubyte bitCount = 0;
+
             foreach (x; 0 .. imgSize) {
                auto qrX = (x / moduleSize) - padding;
                auto qrY = (y / moduleSize) - padding;
 
-               ubyte r, g, b;
-               if (qrX >= 0 && qrX < qrSize && qrY >= 0 && qrY < qrSize && getModule(qrX, qrY)) {
-                  r = cast(ubyte)fr;
-                  g = cast(ubyte)fg;
-                  b = cast(ubyte)fb;
-               } else {
-                  r = cast(ubyte)br;
-                  g = cast(ubyte)bg;
-                  b = cast(ubyte)bb;
+               bool isBlack = (qrX >= 0 && qrX < qrSize && qrY >= 0 && qrY < qrSize && getModule(qrX, qrY));
+               currentByte = cast(ubyte)((currentByte << 1) | (isBlack ? 1 : 0));
+               bitCount++;
+
+               if (bitCount == 8) {
+                  idat ~= currentByte;
+                  currentByte = 0;
+                  bitCount = 0;
                }
-               idat ~= [r, g, b];
+            }
+
+            // Pad the last byte of the row if necessary
+            if (bitCount > 0) {
+               currentByte <<= (8 - bitCount);
+               idat ~= currentByte;
             }
          }
 
@@ -346,63 +357,6 @@ struct QrCode
          // Write to file
          import std.file : write;
          write(filename, pngData);
-      }
-
-      // 1-bit BMP
-      else if (format == OutputFormat.BMP)
-      {
-         import std.bitmanip : nativeToLittleEndian;
-
-         auto imgSize = (qrSize + 2 * padding) * moduleSize;
-         auto rowSize = ((imgSize + 31) / 32) * 4;  // Each row must be a multiple of 4 bytes
-         auto dataSize = rowSize * imgSize;
-         auto colorTableSize = 8;  // 2 colors * 4 bytes each
-         auto fileSize = 54 + colorTableSize + dataSize;  // 54 bytes for header + color table + data size
-
-         ubyte[] bmp;
-
-         // BMP Header (14 bytes)
-         bmp ~= cast(ubyte[])"BM";                          // Signature
-         bmp ~= nativeToLittleEndian(cast(uint)fileSize);   // File size
-         bmp ~= nativeToLittleEndian(cast(uint)0);          // Reserved
-         bmp ~= nativeToLittleEndian(cast(uint)(54 + colorTableSize));  // Offset to pixel data
-
-         // DIB Header (40 bytes)
-         bmp ~= nativeToLittleEndian(cast(uint)40);         // DIB header size
-         bmp ~= nativeToLittleEndian(cast(int)imgSize);     // Width
-         bmp ~= nativeToLittleEndian(cast(int)imgSize);     // Height (positive for bottom-up)
-         bmp ~= nativeToLittleEndian(cast(ushort)1);        // Planes
-         bmp ~= nativeToLittleEndian(cast(ushort)1);        // Bits per pixel (1-bit color)
-         bmp ~= nativeToLittleEndian(cast(uint)0);          // Compression (none)
-         bmp ~= nativeToLittleEndian(cast(uint)dataSize);   // Image size
-         bmp ~= nativeToLittleEndian(cast(int)2835);        // X pixels per meter (72 DPI)
-         bmp ~= nativeToLittleEndian(cast(int)2835);        // Y pixels per meter (72 DPI)
-         bmp ~= nativeToLittleEndian(cast(uint)2);          // Colors in color table
-         bmp ~= nativeToLittleEndian(cast(uint)0);          // Important color count
-
-         // Color Table (8 bytes)
-         bmp ~= [cast(ubyte)bb, cast(ubyte)bg, cast(ubyte)br, 0];  // Background color (BGR)
-         bmp ~= [cast(ubyte)fb, cast(ubyte)fg, cast(ubyte)fr, 0];  // Foreground color (BGR)
-
-         // Pixel data (bottom-up)
-         foreach_reverse (y; 0 .. imgSize) {
-
-            for (size_t x = 0; x < imgSize; x += 8) {
-               ubyte packedByte = 0;
-               for (int j = 0; j < 8 && x + j < imgSize; j++) {
-                  size_t qrX = ((x + j) / moduleSize) - padding;
-                  size_t qrY = (y / moduleSize) - padding;
-
-                  bool isBlack = (qrX >= 0 && qrX < qrSize && qrY >= 0 && qrY < qrSize && getModule(qrX, qrY));
-                  packedByte |= (isBlack ? 1 : 0) << (7 - j);
-               }
-               bmp ~= packedByte;
-            }
-         }
-
-         // Write to file
-         import std.file : write;
-         write(filename, bmp);
       }
    }
 }
