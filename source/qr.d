@@ -188,7 +188,7 @@ struct QrCode
    ++/
    void saveAs(string filename, size_t moduleSize = 10, size_t padding = 2, string foreground = "#000000", string background = "#FFFFFF", OutputFormat format = OutputFormat.AUTO ) const {
 
-      void parseColor(string color, ref int r, ref int g, ref int b) {
+      void parseColor(string color, ref ubyte r, ref ubyte g, ref ubyte b) {
          import std.conv : parse;
 
          if (color.length != 7 || color[0] != '#') throw new Exception("Invalid color format");
@@ -197,9 +197,9 @@ struct QrCode
          auto sg = color[3..5];
          auto sb = color[5..7];
 
-         r = parse!int(sr, 16);
-         g = parse!int(sg, 16);
-         b = parse!int(sb, 16);
+         r = parse!ubyte(sr, 16);
+         g = parse!ubyte(sg, 16);
+         b = parse!ubyte(sb, 16);
       }
 
       if (format == OutputFormat.AUTO) {
@@ -212,8 +212,8 @@ struct QrCode
          else throw new Exception("Unsupported file extension");
       }
 
-      int fr, fg, fb;
-      int br, bg, bb;
+      ubyte fr, fg, fb;
+      ubyte br, bg, bb;
 
       parseColor(foreground, fr, fg, fb);
       parseColor(background, br, bg, bb);
@@ -265,9 +265,9 @@ struct QrCode
                auto qrY = (y / moduleSize) - padding;
 
                if (qrX >= 0 && qrX < qrSize && qrY >= 0 && qrY < qrSize && getModule(qrX, qrY))
-                  ppm ~= [cast(ubyte)fr, cast(ubyte)fg, cast(ubyte)fb];  // Foreground color
+                  ppm ~= [fr, fg, fb];  // Foreground color
                else
-                  ppm ~= [cast(ubyte)br, cast(ubyte)bg, cast(ubyte)bb];  // Background color
+                  ppm ~= [br, bg, bb];  // Background color
             }
          }
 
@@ -318,8 +318,8 @@ struct QrCode
          ubyte[] plte;
          plte.reserve(6);
 
-         plte ~= [cast(ubyte)br, cast(ubyte)bg, cast(ubyte)bb];  // Background color
-         plte ~= [cast(ubyte)fr, cast(ubyte)fg, cast(ubyte)fb];  // Foreground color
+         plte ~= [br, bg, bb];  // Background color
+         plte ~= [fr, fg, fb];  // Foreground color
          writeChunk(pngData, "PLTE", plte);
 
          // Image data
