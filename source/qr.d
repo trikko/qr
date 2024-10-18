@@ -181,7 +181,6 @@ struct QrCode
       return result;
    }
 
-
    deprecated("Use saveAs instead")
    alias save = saveAs;
 
@@ -327,6 +326,7 @@ struct QrCode
          ubyte[] idat;
          idat.reserve(((imgSize + 7) / 8 + 1) * imgSize);
 
+         // Write the image data, one bit per pixel
          foreach (y; 0 .. imgSize) {
             idat ~= 0;  // Filter type for each scanline
             ubyte currentByte = 0;
@@ -355,7 +355,7 @@ struct QrCode
          }
 
          import std.zlib : compress;
-         writeChunk(pngData, "IDAT", compress(idat));
+         writeChunk(pngData, "IDAT", compress(idat,9));
 
          // IEND chunk
          writeChunk(pngData, "IEND", []);
