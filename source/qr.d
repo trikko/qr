@@ -57,12 +57,9 @@ enum OutputFormat {
    PNG  /// The QR Code will be output in PNG format
 }
 
-
-alias QrCode = QRCode;
-
-/++ The QR Code struct contains the QR Code data and provides methods to manipulate and display it.
+/++ The QrCode struct contains the QR Code data and provides methods to manipulate and display it.
 ++/
-struct QRCode
+struct QrCode
 {
    private ubyte[qrcodegen_BUFFER_LEN_MAX()] qr0;
 
@@ -145,13 +142,13 @@ struct QRCode
 
             // QR code row
             for (int x = 0; x < qrSize; x++) {
-                  bool top = getModule(x, y);
-                  bool bottom = (y + 1 < qrSize) && getModule(x, y + 1);
+               bool top = getModule(x, y);
+               bool bottom = (y + 1 < qrSize) && getModule(x, y + 1);
 
-                  if (top && bottom) result ~= pieno;
-                  else if (top) result ~= sopra;
-                  else if (bottom) result ~= sotto;
-                  else result ~= vuoto;
+               if (top && bottom) result ~= pieno;
+               else if (top) result ~= sopra;
+               else if (bottom) result ~= sotto;
+               else result ~= vuoto;
             }
 
             // Right padding
@@ -233,11 +230,11 @@ struct QRCode
 
          foreach (y; 0 .. qrSize)
             foreach (x; 0 .. qrSize) {
-                  if (getModule(x, y)) {
-                     auto rx = (x + padding) * moduleSize;
-                     auto ry = (y + padding) * moduleSize;
-                     svg ~= format("M%d,%dh%dv%dh-%dz ", rx, ry, moduleSize, moduleSize, moduleSize);
-                  }
+               if (getModule(x, y)) {
+                  auto rx = (x + padding) * moduleSize;
+                  auto ry = (y + padding) * moduleSize;
+                  svg ~= format("M%d,%dh%dv%dh-%dz ", rx, ry, moduleSize, moduleSize, moduleSize);
+               }
             }
 
          svg ~= format(`" fill="#%02X%02X%02X"/></svg>`, fr, fg, fb);
@@ -263,14 +260,14 @@ struct QRCode
          // Pixel data
          foreach (y; 0 .. imgSize) {
             foreach (x; 0 .. imgSize) {
-                  // Calculate the corresponding module in the QR code
-                  auto qrX = (x / moduleSize) - padding;
-                  auto qrY = (y / moduleSize) - padding;
+               // Calculate the corresponding module in the QR code
+               auto qrX = (x / moduleSize) - padding;
+               auto qrY = (y / moduleSize) - padding;
 
-                  if (qrX >= 0 && qrX < qrSize && qrY >= 0 && qrY < qrSize && getModule(qrX, qrY))
-                     ppm ~= [cast(ubyte)fr, cast(ubyte)fg, cast(ubyte)fb];  // Foreground color
-                  else
-                     ppm ~= [cast(ubyte)br, cast(ubyte)bg, cast(ubyte)bb];  // Background color
+               if (qrX >= 0 && qrX < qrSize && qrY >= 0 && qrY < qrSize && getModule(qrX, qrY))
+                  ppm ~= [cast(ubyte)fr, cast(ubyte)fg, cast(ubyte)fb];  // Foreground color
+               else
+                  ppm ~= [cast(ubyte)br, cast(ubyte)bg, cast(ubyte)bb];  // Background color
             }
          }
 
