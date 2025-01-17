@@ -59,6 +59,8 @@ import qr;
 QrCode("Hello, world!").writeln; // Print QR Code as ASCII art
 QrCode("Hello, world!").toString(dense: true).writeln; // Print QR Code as ASCII art, dense!
 ```
+![immagine](https://github.com/user-attachments/assets/8eaff80d-f8eb-4751-9fdc-e22c87a5b0de)
+
 
 
 ## License
