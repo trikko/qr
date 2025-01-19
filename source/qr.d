@@ -185,9 +185,12 @@ struct QrCode
    deprecated("Use saveAs instead")
    alias save = saveAs;
 
-   /++ Saves the QR Code to a file. Supports SVG, SVGZ, PPM, PNG formats.
-   ++/
-   void saveAs(string filename, size_t moduleSize = 10, size_t padding = 2, string foreground = "#000000", string background = "#FFFFFF", OutputFormat format = OutputFormat.AUTO ) const {
+
+   /// Export the QR Code as a byte array, using the specified format.
+   /// If format is OutputFormat.AUTO, PNG is used.
+   ubyte[] toBytes(size_t moduleSize = 10, size_t padding = 2, string foreground = "#000000", string background = "#FFFFFF", OutputFormat format = OutputFormat.AUTO) const {
+
+      if (format == OutputFormat.AUTO) format = OutputFormat.PNG;
 
       void parseColor(string color, ref ubyte r, ref ubyte g, ref ubyte b) {
          import std.conv : parse;
@@ -205,17 +208,6 @@ struct QrCode
          }
          catch (Exception e) throw new Exception("Invalid color format: " ~ color);
 
-      }
-
-      if (format == OutputFormat.AUTO) {
-         import std.string : toLower;
-         import std.algorithm : endsWith;
-
-         if (filename.toLower.endsWith(".svg"))         format = OutputFormat.SVG;
-         else if (filename.toLower.endsWith(".svgz"))   format = OutputFormat.SVGZ;
-         else if (filename.toLower.endsWith(".ppm"))    format = OutputFormat.PPM;
-         else if (filename.toLower.endsWith(".png"))    format = OutputFormat.PNG;
-         else throw new Exception("Unsupported file extension");
       }
 
       ubyte fr, fg, fb;
@@ -250,9 +242,10 @@ struct QrCode
          }
 
          import std.file : write;
+         import std.string : representation;
 
          // SVG
-         if (format == OutputFormat.SVG) write(filename, svg);
+         if (format == OutputFormat.SVG) return svg.representation.dup;
 
          // SVGZ
          else {
@@ -280,7 +273,7 @@ struct QrCode
             gzipData ~= nativeToLittleEndian(size);
 
             // Write gzipped data to file
-            write(filename, gzipData);
+            return gzipData;
          }
       }
 
@@ -312,8 +305,7 @@ struct QrCode
             }
          }
 
-         import std.file : write;
-         write(filename, ppm);
+         return ppm;
       }
 
       // Indexed PNG
@@ -402,8 +394,29 @@ struct QrCode
          writeChunk(pngData, "IEND", []);
 
          // Write to file
-         import std.file : write;
-         write(filename, pngData);
+         return pngData;
       }
+
+      else assert(false);
+   }
+
+
+   /++ Saves the QR Code to a file. Supports SVG, SVGZ, PPM, PNG formats.
+   ++/
+   void saveAs(string filename, OutputFormat format = OutputFormat.AUTO, size_t moduleSize = 10, size_t padding = 2, string foreground = "#000000", string background = "#FFFFFF") const {
+      import std.file : write;
+
+      if (format == OutputFormat.AUTO) {
+         import std.string : toLower;
+         import std.algorithm : endsWith;
+
+         if (filename.toLower.endsWith(".svg"))         format = OutputFormat.SVG;
+         else if (filename.toLower.endsWith(".svgz"))   format = OutputFormat.SVGZ;
+         else if (filename.toLower.endsWith(".ppm"))    format = OutputFormat.PPM;
+         else if (filename.toLower.endsWith(".png"))    format = OutputFormat.PNG;
+         else throw new Exception("Unsupported file extension");
+      }
+
+      write(filename, toBytes(moduleSize, padding, foreground, background, format));
    }
 }
