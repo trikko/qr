@@ -1,5 +1,4 @@
 name "qr"
-sourceFiles "source/qr.d" "source/backend.d"
 description "A simple library to generate Qr Codes"
 authors "Andrea Fontana"
 copyright "Copyright © 2024-2025, Andrea Fontana"
