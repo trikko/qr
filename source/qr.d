@@ -62,7 +62,7 @@ enum OutputFormat {
 ++/
 struct QrCode
 {
-   private ubyte[qrcodegen_BUFFER_LEN_MAX()] qr0;
+   private ubyte[qrcodegen_BUFFER_LEN_MAX] qr0;
 
    /++ Create a new QR Code.
      Params:
@@ -78,15 +78,15 @@ struct QrCode
    {
       import std.string : toStringz;
 
-      ubyte[qrcodegen_BUFFER_LEN_MAX] tempBuffer;
+      ubyte[qrcodegen_BUFFER_LEN_MAX()] tempBuffer;
 
-      qrcodegen_Ecc _ecl = qrcodegen_Ecc_LOW;
+      qrcodegen_Ecc _ecl = qrcodegen_Ecc.LOW;
 
       final switch (ecl) {
-         case ErrorCorrectionLevel.LOW:         _ecl = qrcodegen_Ecc_LOW;        break;
-         case ErrorCorrectionLevel.MEDIUM_LOW:  _ecl = qrcodegen_Ecc_MEDIUM;     break;
-         case ErrorCorrectionLevel.MEDIUM_HIGH: _ecl = qrcodegen_Ecc_QUARTILE;   break;
-         case ErrorCorrectionLevel.HIGH:        _ecl = qrcodegen_Ecc_HIGH;       break;
+         case ErrorCorrectionLevel.LOW:         _ecl = qrcodegen_Ecc.LOW;        break;
+         case ErrorCorrectionLevel.MEDIUM_LOW:  _ecl = qrcodegen_Ecc.MEDIUM;     break;
+         case ErrorCorrectionLevel.MEDIUM_HIGH: _ecl = qrcodegen_Ecc.QUARTILE;   break;
+         case ErrorCorrectionLevel.HIGH:        _ecl = qrcodegen_Ecc.HIGH;       break;
       }
 
       bool ok = qrcodegen_encodeText(data.toStringz,
