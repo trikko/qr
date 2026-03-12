@@ -8,9 +8,7 @@ Based on [Project Nayuki's implementation](https://github.com/nayuki/QR-Code-gen
 
 ## Library Usage
 
-You can also use it as a library in your D projects.
-
-Add it to your project using:
+Add this library to your project using:
 ```dub add qr```
 
 ### Basic Example
