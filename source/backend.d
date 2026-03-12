@@ -853,8 +853,7 @@ bool getModuleBounded(const(ubyte)* qrcode, int x, int y) {
 // Sets the color of the module at the given coordinates, which must be in bounds.
 void setModuleBounded(ubyte* qrcode, int x, int y, bool isDark) {
     int qrsize = qrcode[0];
-    import std.conv : to;
-    assert(21 <= qrsize && qrsize <= 177 && 0 <= x && x < qrsize && 0 <= y && y < qrsize, qrsize.to!string ~ " " ~ x.to!string ~ " " ~ y.to!string);
+    assert(21 <= qrsize && qrsize <= 177 && 0 <= x && x < qrsize && 0 <= y && y < qrsize);
     int index = y * qrsize + x;
     int bitIndex = index & 7;
     int byteIndex = (index >> 3) + 1;

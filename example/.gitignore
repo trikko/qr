@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/qrc
+qrc.so
+qrc.dylib
+qrc.dll
+qrc.a
+qrc.lib
+qrc-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst

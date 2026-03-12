@@ -1,0 +1,24 @@
+{
+	"authors": [
+		"Andrea Fontana"
+	],
+	"copyright": "Copyright © 2024-2026, Andrea Fontana",
+	"description": "A CLI tool to create QR Codes and output them as PNG/PPM/SVG or as ASCII/Dense art to the terminal",
+	"license": "MIT",
+	"name": "qrc",
+	"dependencies": {
+		"qr": {
+			"path": ".."
+		}
+	},
+	"targetType": "executable",
+	"configurations": [
+		{
+			"name": "application"
+		},
+		{
+			"name": "static",
+			"dflags-ldc": ["-static", "-L-w"]
+		}
+	]
+}
