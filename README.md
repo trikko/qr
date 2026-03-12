@@ -74,7 +74,6 @@ The project includes a versatile CLI tool called `qrc`.
 ### Help Message
 
 ```text
-qrc v0.1.1 - Your versatile QR Code generator
 Usage: qrc [options] "data"
 
 Examples:
