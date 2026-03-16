@@ -49,6 +49,7 @@ int main(string[] args)
 	string foreground = "#000000";
 	string background = "#FFFFFF";
 	bool boostEcl = true;
+	bool invert = false;
 
 	// Track if image-only options were explicitly provided
 	bool sizeSet, fgSet, bgSet;
@@ -97,6 +98,7 @@ int main(string[] args)
 				validateColor(v, "background");
 				background = v; bgSet = true;
 			},
+			"invert|i", "Invert colors (white background, black modules)", &invert,
 		);
 	}
 	catch (GetOptException e)
@@ -191,7 +193,7 @@ int main(string[] args)
 		}
 
 		bool isDense = (f == "dense");
-		string ascii = qr.toString(padding, isDense);
+		string ascii = qr.toString(padding, isDense, invert);
 
 		if (output != "")
 		{
@@ -219,6 +221,13 @@ int main(string[] args)
 
 		try
 		{
+			if (invert)
+			{
+				string temp = foreground;
+				foreground = background;
+				background = temp;
+			}
+
 			// Generate raw bytes for the selected format
 			ubyte[] bytes = qr.toBytes(moduleSize, padding, foreground, background, outFmt);
 

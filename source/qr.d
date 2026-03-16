@@ -118,8 +118,9 @@ struct QrCode
       Params:
          padding = The number of modules between the QR Code and the border of the output.
          dense = Whether to use a denser font for the output. (probably it won't render correctly on Windows)
+         inverted = Whether to invert the colors (white background, black modules)
    ++/
-   string toString(size_t padding = 2, bool dense = false) const {
+   string toString(size_t padding = 2, bool dense = false, bool inverted = false) const {
 
       import std.range : repeat, join;
 
@@ -133,50 +134,55 @@ struct QrCode
          immutable pieno = "\342\226\210";
          immutable vuoto = " ";
 
-         // Top padding
-         result ~= (vuoto.repeat(totalSize).join ~ "\n").repeat(padding).join();
+         string cPieno = inverted ? vuoto : pieno;
+         string cVuoto = inverted ? pieno : vuoto;
+         string cSopra = inverted ? sotto : sopra;
+         string cSotto = inverted ? sopra : sotto;
 
-         // QR code with side padding
-         for (int y = 0; y < qrSize; y += 2) {
-            // Left padding
-            result ~= vuoto.repeat(padding).join;
+         int totalModules = cast(int)qrSize + 2 * cast(int)padding;
+         for (int py = 0; py < totalModules; py += 2) {
+            for (int px = 0; px < totalModules; px++) {
 
-            // QR code row
-            for (int x = 0; x < qrSize; x++) {
-               bool top = getModule(x, y);
-               bool bottom = (y + 1 < qrSize) && getModule(x, y + 1);
+               bool isF(int _px, int _py) {
+                  if (_px < 0 || _px >= totalModules || _py < 0 || _py >= totalModules) return false;
+                  int x = _px - cast(int)padding;
+                  int y = _py - cast(int)padding;
+                  bool black = (x >= 0 && x < qrSize && y >= 0 && y < qrSize) && getModule(x, y);
+                  return inverted ? !black : black;
+               }
+
+               bool top = isF(px, py);
+               bool bottom = isF(px, py + 1);
 
                if (top && bottom) result ~= pieno;
                else if (top) result ~= sopra;
                else if (bottom) result ~= sotto;
                else result ~= vuoto;
             }
-
-            // Right padding
-            result ~= vuoto.repeat(padding).join ~ "\n";
+            result ~= "\n";
          }
-
-         // Bottom padding
-         result ~= (vuoto.repeat(totalSize).join ~ "\n").repeat(padding).join();
       }
       else {
+         string cPieno = inverted ? "  " : "██";
+         string cVuoto = inverted ? "██" : "  ";
+
          // Top padding
-         for (int i = 0; i < padding; i++) result ~= "  ".repeat(totalSize).join ~ "\n";
+         for (int i = 0; i < padding; i++) result ~= cVuoto.repeat(totalSize).join ~ "\n";
 
          // QR code with side padding
          for (int y = 0; y < qrSize; y++) {
             // Left padding
-            result ~= "  ".repeat(padding).join;
+            result ~= cVuoto.repeat(padding).join;
 
             // QR code row
-            for (int x = 0; x < qrSize; x++) result ~= getModule(x, y) ? "██" : "  ";
+            for (int x = 0; x < qrSize; x++) result ~= getModule(x, y) ? cPieno : cVuoto;
 
             // Right padding
-            result ~= "  ".repeat(padding).join ~ "\n";
+            result ~= cVuoto.repeat(padding).join ~ "\n";
          }
 
          // Bottom padding
-         for (int i = 0; i < padding; i++) result ~= "  ".repeat(totalSize).join ~ "\n";
+         for (int i = 0; i < padding; i++) result ~= cVuoto.repeat(totalSize).join ~ "\n";
       }
 
       return result;
