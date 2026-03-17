@@ -1,6 +1,6 @@
 # Maintainer: Andrea Fontana <andrea.fontana@example.com>
 pkgname=qrc
-pkgver=1.0.6
+pkgver=1.0.7
 pkgrel=1
 pkgdesc="A CLI tool to create QR Codes and output them as PNG/PPM/SVG or as ASCII/Dense art to the terminal"
 options=('!debug' 'strip')

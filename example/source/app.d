@@ -31,7 +31,7 @@ import std.path;
 
 import qr;
 
-enum VER = "v1.0.6";
+enum VER = "v1.0.7";
 
 /**
  * qrc: A versatile QR Code generator CLI tool.
